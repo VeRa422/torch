@@ -262,7 +262,7 @@ function generate() {
   var jsCode = [
 '(function(){',
 'var D=document;',
-'var cfg=JSON.parse(D.getElementById("_cfg").textContent);',
+'var cfg=window._GCFG;',
 'var BG_URL=cfg.bg, CURSOR_URL=cfg.cursor, LIFE_ICON=cfg.life,',
 '    SOUNDS=cfg.sounds, GLYPHS=cfg.glyphs, QUESTIONS=cfg.questions,',
 '    UI_T=cfg.uiT, UI_F=cfg.uiF, CHG_CLR=cfg.chgClr, CHG_TRAIL=cfg.chgTrail,',
@@ -366,7 +366,7 @@ function generate() {
   var jsB64 = btoa(unescape(encodeURIComponent(jsCode)));
 
   // Данные игры в JSON (safeJson убирает < > &, кавычки внутри строк экранированы \")
-  var cfgJson = safeJson({
+  var cfgJsonStr = JSON.stringify({
     bg: bgUrl, cursor: cursorUrl, life: lifeIcon,
     sounds: sounds, glyphs: gList, questions: questions,
     uiT: lang.t, uiF: lang.f,
@@ -374,6 +374,7 @@ function generate() {
     chgClr: chargClr, chgTrail: chargTrail,
     chgW: chargW, chgDur: chargDur, livesN: livesN
   });
+  var cfgB64 = btoa(unescape(encodeURIComponent(cfgJsonStr)));
 
   var html = [
 '<!DOCTYPE html>',
@@ -423,14 +424,16 @@ function generate() {
 '  <div id="win" class="modal"><h2 id="win-txt"><\/h2><button class="ans-btn" id="btn-restart-win"><\/button><\/div>',
 '  <div id="fail" class="modal"><h2 id="fail-txt"><\/h2><button class="ans-btn" id="btn-restart-fail"><\/button><\/div>',
 '<\/div>',
-// Данные через JSON в отдельном теге — не JS-код, экранирование не страшно
-'<script type="application/json" id="_cfg">' + cfgJson + '<\/script>',
-// JS декодируется из base64 — не проходит через escaping вообще
+// cfgB64 и jsB64 через value= с одинарными кавычками — " внутри base64 не бывает
+'<input type=\'hidden\' id=\'_dc\' value=\'' + cfgB64 + '\'>',
+'<input type=\'hidden\' id=\'_dj\' value=\'' + jsB64 + '\'>',
 '<script>',
 '(function(){',
-'  var b64="' + jsB64 + '";',
-'  var code=decodeURIComponent(escape(atob(b64)));',
-'  var s=document.createElement("script");',
+'  var dc=document.getElementById(\'_dc\').value;',
+'  var dj=document.getElementById(\'_dj\').value;',
+'  window._GCFG=JSON.parse(decodeURIComponent(escape(atob(dc))));',
+'  var code=decodeURIComponent(escape(atob(dj)));',
+'  var s=document.createElement(\'script\');',
 '  s.textContent=code;',
 '  document.body.appendChild(s);',
 '})();',
@@ -438,8 +441,6 @@ function generate() {
 '<\/body>',
 '<\/html>'
   ].join('\n');
-
-
 
   document.getElementById('preview').srcdoc = html;
   // HTML теперь безопасен для escaping — JS в base64, данные в JSON
