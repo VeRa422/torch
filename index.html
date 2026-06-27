@@ -140,6 +140,20 @@
         <div class="field-group"><label>Restart</label><input type="text" id="ui_restart" value="RESTART"></div>
       </div>
     </div>
+    <div style="padding:10px 15px;background:#111;border-top:1px solid #333;">
+      <div style="font-size:9px;color:#888;text-transform:uppercase;font-weight:bold;margin-bottom:6px;">Размер iframe на слайде</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px;">
+        <div>
+          <label style="font-size:9px;color:#666;">Ширина</label>
+          <input type="text" id="iframe_w" value="100%" style="padding:5px;font-size:11px;">
+        </div>
+        <div>
+          <label style="font-size:9px;color:#666;">Высота (px)</label>
+          <input type="number" id="iframe_h" value="600" style="padding:5px;font-size:11px;">
+        </div>
+      </div>
+      <div style="font-size:9px;color:#555;line-height:1.4;">Примеры ширины: 100%, 800px, 60%. После вставки в Genially растяните iframe руками до нужного размера — игра масштабируется автоматически.</div>
+    </div>
     <div class="btn-group">
       <button class="btn-action btn-gold" id="btn-generate">СГЕНЕРИРОВАТЬ</button>
       <button class="btn-action btn-copy" id="btn-copy">СКОПИРОВАТЬ</button>
@@ -274,7 +288,7 @@ function generate() {
 'D.getElementById("btn-restart-win").textContent=cfg.restart;',
 'D.getElementById("btn-restart-fail").textContent=cfg.restart;',
 'var coll=0,curLives=LIVES_N,currG=null,actA=null,bar=null;',
-'function play(i){var u=SOUNDS[i];if(!u||u.length<5)return;try{var a=new Audio(u);a.volume=parseFloat(D.getElementById("vol").value)||0.5;a.play().catch(function(){});}catch(e){}}',
+'function play(i){var u=SOUNDS[i];if(!u||u.length<5||u===String.fromCharCode(34,34))return;try{var a=new Audio(u);a.volume=parseFloat(D.getElementById("vol").value)||0.5;a.play().catch(function(){});}catch(e){}}',
 'function renderLives(){',
 '  var b=D.getElementById("lives-box");b.innerHTML="";',
 '  for(var i=0;i<curLives;i++){',
@@ -304,7 +318,9 @@ function generate() {
 'function start(g){',
 '  stop();currG=g;g.classList.add("charging");play(0);',
 '  var pc=g.querySelector(".progress-container");if(!pc)return;',
-'  if(!pc||!pc.offsetParent){stop();return;}',
+'  if(!pc){stop();return;}',
+'  var pcR=pc.getBoundingClientRect();',
+'  if(!pcR||pcR.width<10){stop();return;}',
 '  try{bar=new ProgressBar.Circle(pc,{strokeWidth:CHG_W,duration:CHG_DUR,color:CHG_CLR,trailColor:CHG_TRAIL,trailWidth:1});}catch(e){stop();return;}',
 '  bar.animate(1,function(){',
 '    if(currG!==g)return;',
@@ -387,6 +403,13 @@ function generate() {
 '*{box-sizing:border-box}',
 'body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:transparent;cursor:none;}',
 '.tomb{position:relative;width:100vw;height:100vh;}',
+'#scarab{width:clamp(40px,7vw,75px)!important;height:clamp(40px,7vw,75px)!important;}',
+'.glyph{width:clamp(35px,6vw,65px)!important;height:clamp(35px,6vw,65px)!important;}',
+'.progress-container{width:clamp(50px,9vw,85px)!important;height:clamp(50px,9vw,85px)!important;top:-10px!important;left:-10px!important;}',
+'.slot{width:clamp(24px,4vw,44px)!important;height:clamp(24px,4vw,44px)!important;}',
+'.modal{width:clamp(240px,80vw,360px)!important;font-size:clamp(12px,2vw,16px)!important;}',
+'#q{font-size:clamp(12px,3vw,19px)!important;}',
+'.ans-btn{font-size:clamp(11px,2vw,14px)!important;padding:clamp(8px,2vh,14px) 10px!important;}',
 '#bg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;' + (transparent?'display:none;':'') + '}',
 '#darkness{position:absolute;inset:0;background:radial-gradient(circle 200px at 50% 50%,transparent 10%,rgba(0,0,0,0.98) 100%);pointer-events:none;z-index:200;}',
 '#scarab{position:fixed;width:75px;height:75px;z-index:1000;transform:translate(-50%,-50%);pointer-events:none;filter:drop-shadow(0 0 10px gold);background-size:contain;background-repeat:no-repeat;background-position:center;' + (pulse?'animation:beetleFlight 3s infinite ease-in-out;':'') + '}',
@@ -445,8 +468,10 @@ function generate() {
   document.getElementById('preview').srcdoc = html;
   // HTML теперь безопасен для escaping — JS в base64, данные в JSON
   var esc = html.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  var iW = document.getElementById('iframe_w') ? document.getElementById('iframe_w').value || '100%' : '100%';
+  var iH = document.getElementById('iframe_h') ? document.getElementById('iframe_h').value || '600' : '600';
   document.getElementById('hidden_output').value =
-    '<iframe srcdoc="' + esc + '" width="100%" height="600" frameborder="0" allow="autoplay" style="background:transparent;"><\/iframe>';
+    '<iframe srcdoc="' + esc + '" width="' + iW + '" height="' + iH + '" frameborder="0" allow="autoplay" style="background:transparent;display:block;"><\/iframe>';
 }
 
 function copyCode() {
