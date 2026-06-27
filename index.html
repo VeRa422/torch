@@ -452,7 +452,13 @@ function generate() {
 function copyCode() {
   var t = document.getElementById('hidden_output').value;
   if (!t) { alert('Сначала нажмите СГЕНЕРИРОВАТЬ'); return; }
-  navigator.clipboard.writeText(t).then(function(){ alert('Код скопирован для Genially!'); });
+  navigator.clipboard.writeText(t).then(function(){
+    var btn = document.getElementById('btn-copy');
+    var orig = btn.textContent;
+    btn.textContent = '✓ СКОПИРОВАНО';
+    btn.style.background = '#2d6a2d';
+    setTimeout(function(){ btn.textContent = orig; btn.style.background = ''; }, 2000);
+  });
 }
 
 document.getElementById('btn-generate').addEventListener('click', generate);
